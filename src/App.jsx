@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 function LoopingVideo({ src, poster, className, onClick, variant = 0 }) {
   const ref = useRef(null);
 
+  // helper to retry autoplay
   const forcePlay = useCallback(() => {
     const v = ref.current;
     if (!v) return;
@@ -19,23 +20,41 @@ function LoopingVideo({ src, poster, className, onClick, variant = 0 }) {
   }, []);
 
   useEffect(() => {
+    if (!ref.current || src.toLowerCase().endsWith(".gif")) return; // skip for gifs
+
     const v = ref.current;
-    if (!v) return;
     const onCanPlay = () => forcePlay();
     const onEnded = () => v.play();
     const onSuspend = () => forcePlay();
+
     v.addEventListener("canplay", onCanPlay);
     v.addEventListener("ended", onEnded);
     v.addEventListener("suspend", onSuspend);
     forcePlay();
+
     return () => {
       v.removeEventListener("canplay", onCanPlay);
       v.removeEventListener("ended", onEnded);
       v.removeEventListener("suspend", onSuspend);
     };
-  }, [forcePlay]);
+  }, [forcePlay, src]);
 
   const uniqueSrc = `${src}?v=${variant}`;
+
+  // ✅ if it's a GIF → render <img>
+  if (src.toLowerCase().endsWith(".gif")) {
+    return (
+      <img
+        src={uniqueSrc}
+        alt=""
+        className={className}
+        onClick={onClick}
+        style={{ objectFit: "cover" }}
+      />
+    );
+  }
+
+  // otherwise, render <video>
   return (
     <video
       ref={ref}
