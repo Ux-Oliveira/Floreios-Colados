@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 function LoopingVideo({ src, poster, className, onClick, variant = 0 }) {
   const ref = useRef(null);
 
-  // helper to retry autoplay
   const forcePlay = useCallback(() => {
     const v = ref.current;
     if (!v) return;
@@ -20,41 +19,23 @@ function LoopingVideo({ src, poster, className, onClick, variant = 0 }) {
   }, []);
 
   useEffect(() => {
-    if (!ref.current || src.toLowerCase().endsWith(".gif")) return; // skip for gifs
-
     const v = ref.current;
+    if (!v) return;
     const onCanPlay = () => forcePlay();
     const onEnded = () => v.play();
     const onSuspend = () => forcePlay();
-
     v.addEventListener("canplay", onCanPlay);
     v.addEventListener("ended", onEnded);
     v.addEventListener("suspend", onSuspend);
     forcePlay();
-
     return () => {
       v.removeEventListener("canplay", onCanPlay);
       v.removeEventListener("ended", onEnded);
       v.removeEventListener("suspend", onSuspend);
     };
-  }, [forcePlay, src]);
+  }, [forcePlay]);
 
   const uniqueSrc = `${src}?v=${variant}`;
-
-  // ✅ if it's a GIF → render <img>
-  if (src.toLowerCase().endsWith(".gif")) {
-    return (
-      <img
-        src={uniqueSrc}
-        alt=""
-        className={className}
-        onClick={onClick}
-        style={{ objectFit: "cover" }}
-      />
-    );
-  }
-
-  // otherwise, render <video>
   return (
     <video
       ref={ref}
@@ -106,9 +87,9 @@ export default function App() {
   }, [windowWidth]);
 
   const homeVideos = [
-    { src: "/left.gif", poster: "/Olhos_em_mim.png", desc: "“Olhos em Mim” (Eyes on Me) - In this piece the woman sits elegantly in a beige outfit, her head replaced by a slipper orchid. Around her float disembodied eyes, cut out and scattered across the white space. It plays with the themes of gaze, objectification, and power. The subject is both the one looked at and the one controlling the scene." },
-    { src: "/center.gif", poster: "/Sobre_o_azul.png", desc: "“Sobre o Azul” (About the Blue/or Over the Blue) — this piece fuses human, botanical, and mythological imagery. It brings up themes of identity in relation to individuality, nature intertwined with culture. The woman with the flowing drapery is a Hora (one of the Goddesses of the seasons) taken from Botticelli's 'The Birth of Venus'. In the painting she rushes to Venus to welcome her into the world of Gods by wrapping her in a richly patterned floral cloak. In this collage she greets an orchid into existence." },
-    { src: "/right.gif", poster: "/Rainha_Dragão.png", desc: "“Rainha Dragão” (Dragon Queen) - A hybrid of sexuality and danger. breaking away from the 'flowerly identity' motif, expressed by flowers placed over women´s faces. This piece symbolizes empowerment, rage, and female strength. It is a reclaiming of vulnerability through mythological fire. Interestingly, the orchid present in Sobre o Azul has certain hybrid cultivars that are called Dragon Dance or Krull´s Yellow Dragon. Which enphasizes the exploration of transformation, power and ceremonial identity present in a lot of Lethicia´s work. And suggests the flower motif is still present here." }
+    { src: "/leftcutout.mp4", poster: "/Olhos_em_mim.png", desc: "“Olhos em Mim” (Eyes on Me) - In this piece the woman sits elegantly in a beige outfit, her head replaced by a slipper orchid. Around her float disembodied eyes, cut out and scattered across the white space. It plays with the themes of gaze, objectification, and power. The subject is both the one looked at and the one controlling the scene." },
+    { src: "/cutout1noaudio.mp4", poster: "/Sobre_o_azul.png", desc: "“Sobre o Azul” (About the Blue/or Over the Blue) — this piece fuses human, botanical, and mythological imagery. It brings up themes of identity in relation to individuality, nature intertwined with culture. The woman with the flowing drapery is a Hora (one of the Goddesses of the seasons) taken from Botticelli's 'The Birth of Venus'. In the painting she rushes to Venus to welcome her into the world of Gods by wrapping her in a richly patterned floral cloak. In this collage she greets an orchid into existence." },
+    { src: "/rightcutout.mp4", poster: "/Rainha_Dragão.png", desc: "“Rainha Dragão” (Dragon Queen) - A hybrid of sexuality and danger. breaking away from the 'flowerly identity' motif, expressed by flowers placed over women´s faces. This piece symbolizes empowerment, rage, and female strength. It is a reclaiming of vulnerability through mythological fire. Interestingly, the orchid present in Sobre o Azul has certain hybrid cultivars that are called Dragon Dance or Krull´s Yellow Dragon. Which enphasizes the exploration of transformation, power and ceremonial identity present in a lot of Lethicia´s work. And suggests the flower motif is still present here." }
   ];
 
   return (
