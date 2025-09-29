@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useState as useReactState } from "react";
 import Navbar from "./components/Navbar.jsx";
 import ScrollTopButton from "./components/ScrollTopButton.jsx";
 import SectionModal from "./components/SectionModal.jsx";
 import { Element } from "react-scroll";
 import { Link } from "react-router-dom";
 
-/** ---------- FIX: robust looping video component ---------- **/
-function LoopingVideo({ src, poster, className, onClick, variant = 0 }) {
+/** ---------- FIX: robust looping video component with smoother load ---------- **/
+function LoopingVideo({ src, poster, className, onClick, variant = 0, preloadMode = "auto" }) {
   const ref = useRef(null);
+  const [loading, setLoading] = useReactState(true);
 
   const forcePlay = useCallback(() => {
     const v = ref.current;
@@ -21,48 +22,66 @@ function LoopingVideo({ src, poster, className, onClick, variant = 0 }) {
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    const onCanPlay = () => forcePlay();
+
+    v.load(); // force pre-buffer
+
+    const onCanPlayThrough = () => {
+      setLoading(false);
+      forcePlay();
+    };
     const onEnded = () => v.play();
     const onSuspend = () => forcePlay();
-    v.addEventListener("canplay", onCanPlay);
+    const onPlaying = () => setLoading(false);
+
+    v.addEventListener("canplaythrough", onCanPlayThrough);
     v.addEventListener("ended", onEnded);
     v.addEventListener("suspend", onSuspend);
+    v.addEventListener("playing", onPlaying);
+
     forcePlay();
+
     return () => {
-      v.removeEventListener("canplay", onCanPlay);
+      v.removeEventListener("canplaythrough", onCanPlayThrough);
       v.removeEventListener("ended", onEnded);
       v.removeEventListener("suspend", onSuspend);
+      v.removeEventListener("playing", onPlaying);
     };
   }, [forcePlay]);
 
-  const uniqueSrc = `${src}?v=${variant}`;
   return (
-    <video
-      ref={ref}
-      src={uniqueSrc}
-      poster={poster}
-      autoPlay
-      muted
-      loop
-      playsInline
-      preload="auto"
-      disablePictureInPicture
-      controls={false}
-      className={className}
-      onClick={onClick}
-      onError={(e) => console.warn("Video error", e?.currentTarget?.error)}
-    />
+    <div className="relative">
+      <video
+        ref={ref}
+        src={src}
+        poster={poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload={preloadMode}
+        disablePictureInPicture
+        controls={false}
+        className={className}
+        onClick={onClick}
+        onError={(e) => console.warn("Video error", e?.currentTarget?.error)}
+      />
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black text-white text-sm animate-pulse">
+          Loading video…
+        </div>
+      )}
+    </div>
   );
 }
 
 /** ---------- GALLERY DATA ---------- **/
 const galleryImages = [
-  { file: "Bixinho.png", desc: "Bixinho (Little Thing) - A floral-bodied portrait that folds text and orchids into an intimate yet uneasy confession about attachment and desire. The Portuguese text reads: 'I never felt detachment from anyone… with you… I experienced it… I couldn’t resist'. This slight jab goes hand-in-hand with the identity exploration themes. One could read that as a soliloquy, coming from a person who, upon detaching themselves from someone, found themselves attached to and in tune with themselves." },
-  { file: "La_fine_fleur.png", desc: "La Fine Fleur (The Finest Flower) - This is perhaps the most fundamental piece from the collection. Because it expands upon all the themes. The womans face is replaced with an exert from a book instead of a flower this time. The headpiece of the flower still grows out of her though, symbolizing transformation. This collage celebrates women as intellectual, natural, and hybrid beings. That are to be cultivated like flowers, but are also rooted in knowledge and ellegance." },
-  { file: "Sobre o desejo.png", desc: "Sobre o Desejo (About the Desire) - Some gestures in this composition are open and tender, while others suggest struggle or erotic tension. Maybe her most surreal piece, perhaps expanding upon the disjointment theme of Bixinho. The orchid´s association with sensuality is front and center and fused with the fragmented human limbs. A metaphor for desire as both natural and disjointed sensations, beautiful yet unsettling." },
-  { file: "Com_que_roupa_vou.png", desc: "Com que roupa vou (With What Outfit Should I Go?) - Botticelli’s Birth of Venus is present here once again. Her body is about to be dressed by two large manicured hands reaching down with paper-doll formal clothes, a suit and a tie. Fashion cutouts surround her. Although the bright red background suggest a theatrical and playful mood. This masquerades the tool of societal pressure upon women. Venus is forced to fit into a mold. Therefore the orchids are gone. Replaced by the plastic consumerist nature that we often find in the place where, someones identity was supposed to be. While the title suggests the confusion brought by the overwhelming choices of consumerism. There are no orchids present, and as such no identity to be found, no matter what Venus chooses to wear. " },
-  { file: "Seven_Sins.png", desc: "Seven Sins - This is a dense montage referencing moral lists and decorative excess where repetition becomes the motif of transgression. The honey flows suggestively, placed close to the body. Sensual and playful, the honey and the text “We can take it slow” are an exploration of indulgence, pleasure, and temptation. Aligning with the idea of “sins” but reframing them as sweet and human." },
-  { file: "Nesta_Casa.png", desc: "Nesta Casa (In This House) - From the windows of a baroque-style palace façade emerges human arms, legs, and eyes. As if the house itself is alive. The collage transforms the palace into a surreal body, suggesting memory, surveillance, and the lives hidden inside walls. Rooms and bodies become interchangeable containers of memory. A transitional piece in this gallery that serves as a sneak peak into what other themes the artist wants to explore. While still screaming her central theme: Identity!" }
+  { file: "Bixinho.png", desc: "Bixinho (Little Thing) - A floral-bodied portrait ..." },
+  { file: "La_fine_fleur.png", desc: "La Fine Fleur (The Finest Flower) ..." },
+  { file: "Sobre o desejo.png", desc: "Sobre o Desejo (About the Desire) ..." },
+  { file: "Com_que_roupa_vou.png", desc: "Com que roupa vou (With What Outfit Should I Go?) ..." },
+  { file: "Seven_Sins.png", desc: "Seven Sins - This is a dense montage ..." },
+  { file: "Nesta_Casa.png", desc: "Nesta Casa (In This House) ..." }
 ];
 
 export default function App() {
@@ -87,9 +106,9 @@ export default function App() {
   }, [windowWidth]);
 
   const homeVideos = [
-    { src: "/leftcutout.mp4", poster: "/Olhos_em_mim.png", desc: "“Olhos em Mim” (Eyes on Me) - In this piece the woman sits elegantly in a beige outfit, her head replaced by a slipper orchid. Around her float disembodied eyes, cut out and scattered across the white space. It plays with the themes of gaze, objectification, and power. The subject is both the one looked at and the one controlling the scene." },
-    { src: "/cutout1noaudio.mp4", poster: "/Sobre_o_azul.png", desc: "“Sobre o Azul” (About the Blue/or Over the Blue) — this piece fuses human, botanical, and mythological imagery. It brings up themes of identity in relation to individuality, nature intertwined with culture. The woman with the flowing drapery is a Hora (one of the Goddesses of the seasons) taken from Botticelli's 'The Birth of Venus'. In the painting she rushes to Venus to welcome her into the world of Gods by wrapping her in a richly patterned floral cloak. In this collage she greets an orchid into existence." },
-    { src: "/rightcutout.mp4", poster: "/Rainha_Dragão.png", desc: "“Rainha Dragão” (Dragon Queen) - A hybrid of sexuality and danger. breaking away from the 'flowerly identity' motif, expressed by flowers placed over women´s faces. This piece symbolizes empowerment, rage, and female strength. It is a reclaiming of vulnerability through mythological fire. Interestingly, the orchid present in Sobre o Azul has certain hybrid cultivars that are called Dragon Dance or Krull´s Yellow Dragon. Which enphasizes the exploration of transformation, power and ceremonial identity present in a lot of Lethicia´s work. And suggests the flower motif is still present here." }
+    { src: "/leftcutout.mp4", poster: "/Olhos_em_mim.png", desc: "Olhos em Mim ..." },
+    { src: "/cutout1noaudio.mp4", poster: "/Sobre_o_azul.png", desc: "Sobre o Azul ..." },
+    { src: "/rightcutout.mp4", poster: "/Rainha_Dragão.png", desc: "Rainha Dragão ..." }
   ];
 
   return (
@@ -104,39 +123,38 @@ export default function App() {
               <LoopingVideo
                 key="left"
                 src={homeVideos[0].src}
-                variant={0}
                 poster={homeVideos[0].poster}
                 className="w-1/3 max-h-[70vh] object-cover cursor-pointer"
                 onClick={() =>
                   setModalData({ img: homeVideos[0].poster, desc: homeVideos[0].desc })
                 }
+                preloadMode="auto"
               />
               <LoopingVideo
                 key="center"
                 src={homeVideos[1].src}
-                variant={1}
                 poster={homeVideos[1].poster}
                 className="w-1/3 max-h-[70vh] object-cover cursor-pointer"
                 onClick={() =>
                   setModalData({ img: homeVideos[1].poster, desc: homeVideos[1].desc })
                 }
+                preloadMode="metadata"
               />
               <LoopingVideo
                 key="right"
                 src={homeVideos[2].src}
-                variant={2}
                 poster={homeVideos[2].poster}
                 className="w-1/3 max-h-[70vh] object-cover cursor-pointer"
                 onClick={() =>
                   setModalData({ img: homeVideos[2].poster, desc: homeVideos[2].desc })
                 }
+                preloadMode="metadata"
               />
             </>
           ) : (
             <LoopingVideo
               key={mobileHomeIndex}
               src={homeVideos[mobileHomeIndex].src}
-              variant={mobileHomeIndex}
               poster={homeVideos[mobileHomeIndex].poster}
               className="w-full max-h-[60vh] object-cover cursor-pointer"
               onClick={() =>
@@ -145,6 +163,7 @@ export default function App() {
                   desc: homeVideos[mobileHomeIndex].desc
                 })
               }
+              preloadMode="auto"
             />
           )}
         </div>
@@ -176,7 +195,6 @@ export default function App() {
 
       {/* MEET THE ARTIST */}
       <Element name="meet" className="relative min-h-screen bg-black text-white flex items-center overflow-hidden">
-        {/* Background sliding image */}
         <div
           className="absolute inset-0 opacity-20 bg-no-repeat bg-cover"
           style={{
