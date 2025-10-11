@@ -233,8 +233,8 @@ export default function App() {
             <span className="text-xl">📷</span>
             <span>@floreioscolados</span>
           </a>
-          {/*<a href="https://portfolio-git-main-ricks-projects-08c86335.vercel.app/" target="_blank"><div className="mt-6 text-sm opacity-75">a project by Henrique Oliveira</div></a>
-        </div>*/}
+          {/*<a href="https://portfolio-git-main-ricks-projects-08c86335.vercel.app/" target="_blank"><div className="mt-6 text-sm opacity-75">a project by Henrique Oliveira</div></a>*/}
+        </div>
       </Element>
 
       <ScrollTopButton />
