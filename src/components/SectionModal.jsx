@@ -6,12 +6,23 @@ Modal.setAppElement("#root");
 export default function SectionModal({ modalData, setModalData }) {
   if (!modalData) return null;
 
+  const handleOverlayClick = (e) => {
+    // only close if user clicks directly on the overlay (not image or description)
+    if (e.target.classList.contains("ReactModal__Overlay")) {
+      setModalData(null);
+    }
+  };
+
   return (
     <Modal
       isOpen={!!modalData}
       onRequestClose={() => setModalData(null)}
-      overlayClassName="fixed inset-0 bg-black/70 flex items-center justify-center p-4 overflow-y-auto z-[100]"
+      onAfterOpen={() => document.body.classList.add("no-scroll")}
+      onAfterClose={() => document.body.classList.remove("no-scroll")}
+      overlayClassName="ReactModal__Overlay fixed inset-0 bg-black/70 flex items-center justify-center p-4 overflow-y-auto z-[100]"
       className="bg-transparent outline-none w-full flex justify-center"
+      shouldCloseOnOverlayClick={true}
+      onClick={handleOverlayClick}
     >
       <div
         className={`bg-transparent flex flex-col md:flex-row gap-6 md:gap-10 w-full max-w-5xl items-center justify-center`}
@@ -20,7 +31,7 @@ export default function SectionModal({ modalData, setModalData }) {
         <img
           src={modalData.img}
           alt=""
-          className="w-full md:w-1/2 max-h-[70vh] md:max-h-[75vh] object-contain rounded-lg"
+          className="w-full md:w-1/2 max-h-[70vh] md:max-h-[75vh] object-contain rounded-lg cursor-default"
         />
         <div className="w-full md:w-1/2 text-white">
           <div className="bg-black/60 backdrop-blur-md rounded-xl p-4 md:p-6 text-sm md:text-base leading-relaxed">
