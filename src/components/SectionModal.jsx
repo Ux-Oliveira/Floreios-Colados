@@ -13,49 +13,65 @@ export default function SectionModal({ modalData, setModalData }) {
       shouldCloseOnOverlayClick={true}
       onAfterOpen={() => document.body.classList.add("no-scroll")}
       onAfterClose={() => document.body.classList.remove("no-scroll")}
+      // Overlay covers entire viewport and has a very high z-index
       overlayClassName={
-        // keep a stable overlay class name so react-modal's overlay click logic works
-        "ReactModal__Overlay fixed inset-0 bg-black/70 flex items-center justify-center p-4 overflow-y-auto z-[100]"
+        "fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
       }
-      // make modal content wrapper minimal (react-modal will render it centered)
-      className="ReactModal__Content bg-transparent outline-none w-full flex justify-center items-start"
+      // Content has its own z-index and is centered by the overlay
+      className={
+        "relative outline-none w-full max-w-5xl mx-auto flex justify-center items-start pointer-events-none"
+      }
     >
       {/* 
-        Container:
-        - always column on mobile (stacked)
-        - on md+ it becomes row or row-reverse depending on modalData.reverse
-        - text-center on mobile, left-aligned on md+
+        Inner wrapper receives pointer events (so overlay clicks register outside this wrapper).
+        - pointer-events: auto ensures clicks inside do not fall through to overlay.
+        - flex-col on mobile (stacked): description above image
+        - md:flex-row or md:flex-row-reverse on desktop to keep alternating
       */}
       <div
-        className={`w-full max-w-5xl flex flex-col items-center gap-6
-                    text-center md:items-start md:text-left
+        onClick={(e) => e.stopPropagation()}
+        className={`pointer-events-auto w-full max-w-5xl flex flex-col items-center gap-6
+                    text-center md:text-left
                     ${modalData?.reverse ? "md:flex-row-reverse" : "md:flex-row"}`}
       >
-        {/* DESCRIPTION: appears ABOVE the image on mobile (because of flex-col) */}
-        <div className="w-full md:w-1/2 flex-shrink-0">
+        {/* Description: appears ABOVE the image on mobile due to flex-col */}
+        <div className="w-full md:w-1/2 flex-shrink-0 order-1 md:order-none">
           <div
-            className="mx-auto md:mx-0 bg-black/70 backdrop-blur-md rounded-xl p-4 md:p-6 text-sm md:text-base leading-relaxed
-                       max-w-[900px]"
+            className="mx-auto md:mx-0 bg-black/80 backdrop-blur-md rounded-xl p-4 md:p-6 text-sm md:text-base leading-relaxed text-white"
             style={{
-              // ensure the description box doesn't exceed viewport on very small screens
               maxHeight: "60vh",
               overflowY: "auto",
+              // limit width so it centers nicely on mobile
+              maxWidth: "900px",
             }}
           >
             <p>{modalData.desc}</p>
           </div>
         </div>
 
-        {/* IMAGE: below the description on mobile, side-by-side on md+ */}
-        <div className="w-full md:w-1/2 flex items-center justify-center">
+        {/* Image: below the description on mobile, side-by-side on md+ */}
+        <div className="w-full md:w-1/2 flex items-center justify-center order-2 md:order-none">
           <img
             src={modalData.img}
             alt=""
             className="w-full md:w-auto max-w-full max-h-[70vh] object-contain rounded-lg"
-            // ensure image doesn't capture pointer events that should close overlay when clicking outside
-            style={{ pointerEvents: "auto" }}
+            style={{
+              // image shouldn't block overlay clicks outside its bounding box
+              pointerEvents: "auto",
+              display: "block",
+            }}
           />
         </div>
+
+        {/* Small accessible close button (helps users who can't tap outside) */}
+        <button
+          aria-label="Close"
+          onClick={() => setModalData(null)}
+          className="absolute top-4 right-4 z-[10010] bg-black/50 text-white rounded-full w-9 h-9 flex items-center justify-center hover:bg-black/70"
+          style={{ pointerEvents: "auto" }}
+        >
+          ✕
+        </button>
       </div>
     </Modal>
   );
