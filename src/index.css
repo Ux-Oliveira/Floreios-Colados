@@ -17,9 +17,11 @@ body {
   width: 100%;
 }
 
-.ReactModal__Body--open,
-.no-scroll {
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
+/* ensure overlay/content z-order is higher than other elements */
+.ReactModal__Overlay {
+  z-index: 9999 !important;
+}
+
+.ReactModal__Content {
+  z-index: 10000 !important;
 }
