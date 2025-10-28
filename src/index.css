@@ -23,3 +23,11 @@ body {
   position: fixed;
   width: 100%;
 }
+
+/* Add to index.css or global stylesheet */
+.ReactModal__Body--open,
+.no-scroll {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
