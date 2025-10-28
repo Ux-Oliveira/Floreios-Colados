@@ -7,7 +7,7 @@ export default function SectionModal({ modalData, setModalData }) {
   if (!modalData) return null;
 
   const handleOverlayClick = (e) => {
-    // only close if user clicks directly on the overlay (not image or description)
+    // Close only when clicking directly on the overlay (not the content)
     if (e.target.classList.contains("ReactModal__Overlay")) {
       setModalData(null);
     }
@@ -25,19 +25,22 @@ export default function SectionModal({ modalData, setModalData }) {
       onClick={handleOverlayClick}
     >
       <div
-        className={`bg-transparent flex flex-col md:flex-row gap-6 md:gap-10 w-full max-w-5xl items-center justify-center`}
+        className={`bg-transparent flex flex-col md:flex-row gap-6 md:gap-10 w-full max-w-5xl items-center justify-center text-center md:text-left`}
         style={{ flexDirection: modalData.reverse ? "row-reverse" : "row" }}
       >
-        <img
-          src={modalData.img}
-          alt=""
-          className="w-full md:w-1/2 max-h-[70vh] md:max-h-[75vh] object-contain rounded-lg cursor-default"
-        />
-        <div className="w-full md:w-1/2 text-white">
+        {/* Description ABOVE image on mobile */}
+        <div className="w-full md:w-1/2 text-white order-1 md:order-none">
           <div className="bg-black/60 backdrop-blur-md rounded-xl p-4 md:p-6 text-sm md:text-base leading-relaxed">
             <p>{modalData.desc}</p>
           </div>
         </div>
+
+        {/* Image BELOW description on mobile */}
+        <img
+          src={modalData.img}
+          alt=""
+          className="w-full md:w-1/2 max-h-[70vh] md:max-h-[75vh] object-contain rounded-lg cursor-default order-2 md:order-none"
+        />
       </div>
     </Modal>
   );
