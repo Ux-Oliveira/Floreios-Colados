@@ -20,8 +20,18 @@ body {
 /* ensure overlay/content z-order is higher than other elements */
 .ReactModal__Overlay {
   z-index: 9999 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ReactModal__Content {
   z-index: 10000 !important;
+}
+
+/* Prevent scroll when modal open */
+.no-scroll {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
 }
